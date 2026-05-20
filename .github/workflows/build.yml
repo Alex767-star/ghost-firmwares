@@ -1,0 +1,83 @@
+name: Build All Platforms
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+
+jobs:
+  build-flipper:
+    runs-on: ubuntu-latest
+    container: ghcr.io/flipperdevices/flipperzero-toolchain:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Flipper Zero
+        run: |
+          cd flipper_zero
+          ./fbt firmware_flipper
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flipper-firmware
+          path: flipper_zero/build/*.fap
+
+  build-m5stick:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build M5StickC Plus 2
+        run: |
+          pip install platformio
+          cd m5stick_plus2
+          pio run -e m5stick-c-plus2
+      - uses: actions/upload-artifact@v4
+        with:
+          name: m5stick-firmware
+          path: m5stick_plus2/.pio/build/m5stick-c-plus2/firmware.bin
+
+  build-tmbed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build T-Mbed
+        run: |
+          pip install platformio
+          cd tmbed
+          pio run -e t-embed
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tmbed-firmware
+          path: tmbed/.pio/build/t-embed/firmware.bin
+
+  release:
+    needs: [build-flipper, build-m5stick, build-tmbed]
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: flipper-firmware
+          path: dist/flipper
+      - uses: actions/download-artifact@v4
+        with:
+          name: m5stick-firmware
+          path: dist/m5stick
+      - uses: actions/download-artifact@v4
+        with:
+          name: tmbed-firmware
+          path: dist/tmbed
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/flipper/*.fap
+            dist/m5stick/*.bin
+            dist/tmbed/*.bin

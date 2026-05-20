@@ -1,0 +1,12 @@
+*.o
+*.bin
+*.fap
+*.hex
+build/
+.pio/
+dist/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+__pycache__/
