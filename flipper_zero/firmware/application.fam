@@ -1,0 +1,14 @@
+App(
+    appid="ghost_firmwares",
+    name="Ghost Firmwares",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="ghost_app",
+    cdefines=["GHOST_FLIPPER"],
+    requires=["gui"],
+    stack_size=4096,
+    order=30,
+    fap_icon="ghost_icon.png",
+    fap_category="Tools",
+    fap_author="ellilot Anderson / GhostSec",
+    fap_version="2.0.0",
+)
