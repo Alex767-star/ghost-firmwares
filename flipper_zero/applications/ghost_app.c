@@ -1,3 +1,83 @@
+#include "../../shared/core/ghost_core.h"
+#include "../../shared/wifi/wifi_jammer.h"
+#include "../../shared/ble/ble_spam.h"
+#include "../../shared/badusb/badusb.h"
+#include "../../shared/phishing/phishing.h"
+#include "../../shared/wifi/wifi_cracker.h"
+#include "../../shared/subghz/subghz_gate.h"
+#include "../../shared/ir/ir_tv.h"
+#include "../../shared/ui/ui_themes.h"
+#include "../../shared/core/ghost_extra.h"
+#include <furi.h>
+#include <gui/gui.h>
+#include <input/input.h>
+#include <notification/notification.h>
+
+static device_t device = DEVICE_FLIPPER;
+static mode_t current_mode = MODE_WIFI_JAM;
+static bool running = false;
+static bool exit_app = false;
+
+static void ghost_draw_callback(Canvas* canvas, void* ctx) {
+    canvas_clear(canvas);
+    canvas_set_font(canvas, FontPrimary);
+    canvas_draw_str(canvas, 2, 10, "GHOST v2.0 | ReWorld");
+
+    const char* mode_names[] = {
+        "Wi-Fi Jammer", "BLE Spam", "BadUSB", "Phishing",
+        "Wi-Fi Cracker", "TV ON", "TV OFF", "Gate OPEN",
+        "Gate CLOSE", "Spectrum", "Wallpaper", "Themes",
+        "Icons", "Wi-Fi DoS", "BT DoS", "NFC Clone",
+        "RFID Emulate", "Keylogger", "Sniffer", "Evil Portal",
+        "Deauther", "Beacon Spam", "DNS Spoof", "ARP Poison",
+        "MITM Proxy", "Payload Drop", "Screen Mirror", "Files",
+        "SysInfo", "Shell"
+    };
+    canvas_draw_str(canvas, 2, 24, mode_names[current_mode]);
+    canvas_draw_str(canvas, 2, 36, running ? "[RUNNING]" : "[STOPPED]");
+    canvas_draw_str(canvas, 2, 48, "OK:Run  UP/DOWN:Mode  BACK:Exit");
+}
+
+static void ghost_input_callback(InputEvent* event, void* ctx) {
+    if (event->type == InputTypePress) {
+        switch (event->key) {
+            case InputKeyUp:
+                if (!running) current_mode = (current_mode > 0) ? current_mode - 1 : MODE_SHELL;
+                break;
+            case InputKeyDown:
+                if (!running) current_mode = (current_mode < MODE_SHELL) ? current_mode + 1 : 0;
+                break;
+            case InputKeyOk:
+                running = !running;
+                if (running) {
+                    // Запуск режима
+                    switch (current_mode) {
+                        case MODE_WIFI_JAM: wifi_jammer_start(); break;
+                        case MODE_BLE_SPAM: ble_spam_start(); break;
+                        case MODE_TV_ON: ir_tv_send(); break;
+                        case MODE_TV_OFF: ir_tv_send(); break;
+                        default: break;
+                    }
+                } else {
+                    // Стоп режима
+                    wifi_jammer_stop();
+                    ble_spam_stop();
+                }
+                break;
+            case InputKeyBack:
+                if (running) {
+                    running = false;
+                    wifi_jammer_stop();
+                    ble_spam_stop();
+                } else {
+                    exit_app = true;
+                }
+                break;
+            default: break;
+        }
+    }
+}
+
 int32_t ghost_app(void* p) {
     Gui* gui = furi_record_open(RECORD_GUI);
     ViewPort* viewport = view_port_alloc();
@@ -7,18 +87,20 @@ int32_t ghost_app(void* p) {
 
     ui_themes_init();
     ui_theme_apply(THEME_MATRIX);
-    ui_draw_boot_splash();
+    wifi_jammer_init();
+    ble_spam_init();
+    badusb_init();
+    phishing_init();
+    wifi_cracker_init();
+    subghz_gate_init();
+    ir_tv_init();
 
-    bool exit_app = false;
     while (!exit_app) {
         furi_delay_ms(50);
-        // Проверка на выход через BACK
-        if (furi_hal_console_is_rx_ready()) {
-            char c = furi_hal_console_rx();
-            if (c == 0x1B) exit_app = true; // ESC = выход
-        }
     }
 
+    wifi_jammer_stop();
+    ble_spam_stop();
     view_port_enabled_set(viewport, false);
     gui_remove_view_port(gui, viewport);
     view_port_free(viewport);

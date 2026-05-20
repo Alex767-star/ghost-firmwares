@@ -13,7 +13,7 @@ typedef enum {
 
 typedef struct {
     ducky_cmd_t cmd;
-    union { char str[256]; uint16_t delay; uint8_t key; } data;
+    union { char str[256]; uint16_t delay; uint8_t key; } d;
 } ducky_line_t;
 
 void badusb_init(void);
