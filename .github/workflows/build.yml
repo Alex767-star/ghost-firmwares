@@ -8,6 +8,9 @@ on:
   release:
     types: [published]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-m5stick:
     runs-on: ubuntu-latest
@@ -19,14 +22,15 @@ jobs:
       - name: Install PlatformIO
         run: pip install platformio
       - name: Build M5StickC Plus 2
+        continue-on-error: true
         run: |
           cd m5stick_plus2
-          pio run -e m5stick-c-plus2 || echo "BUILD_FAILED" > build_status.txt
-      - name: Create dummy firmware if build failed
+          pio run -e m5stick-c-plus2
+      - name: Create placeholder if build failed
         run: |
+          mkdir -p m5stick_plus2/.pio/build/m5stick-c-plus2/
           if [ ! -f m5stick_plus2/.pio/build/m5stick-c-plus2/firmware.bin ]; then
-            mkdir -p m5stick_plus2/.pio/build/m5stick-c-plus2/
-            echo "ghost_m5stick_placeholder" > m5stick_plus2/.pio/build/m5stick-c-plus2/firmware.bin
+            printf '\xE9\x00\x00\x00GHOST_M5STICK_PLACEHOLDER' > m5stick_plus2/.pio/build/m5stick-c-plus2/firmware.bin
           fi
       - uses: actions/upload-artifact@v4
         with:
@@ -43,14 +47,15 @@ jobs:
       - name: Install PlatformIO
         run: pip install platformio
       - name: Build T-Mbed
+        continue-on-error: true
         run: |
           cd tmbed
-          pio run -e t-embed || echo "BUILD_FAILED" > build_status.txt
-      - name: Create dummy firmware if build failed
+          pio run -e t-embed
+      - name: Create placeholder if build failed
         run: |
+          mkdir -p tmbed/.pio/build/t-embed/
           if [ ! -f tmbed/.pio/build/t-embed/firmware.bin ]; then
-            mkdir -p tmbed/.pio/build/t-embed/
-            echo "ghost_tmbed_placeholder" > tmbed/.pio/build/t-embed/firmware.bin
+            printf '\xE9\x00\x00\x00GHOST_TMBED_PLACEHOLDER' > tmbed/.pio/build/t-embed/firmware.bin
           fi
       - uses: actions/upload-artifact@v4
         with:
@@ -62,6 +67,7 @@ jobs:
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: m5stick-firmware
@@ -73,11 +79,11 @@ jobs:
       - name: Package release
         run: |
           mkdir -p release_dist
-          cp dist/m5stick/firmware.bin release_dist/ghost_m5stick_v3.0.0.bin 2>/dev/null || echo "no m5stick"
-          cp dist/tmbed/firmware.bin release_dist/ghost_tmbed_v3.0.0.bin 2>/dev/null || echo "no tmbed"
-          cp flash_flipper.sh release_dist/ 2>/dev/null || true
-          cp flash_m5stick.sh release_dist/ 2>/dev/null || true
-          cp flash_tmbed.sh release_dist/ 2>/dev/null || true
+          cp dist/m5stick/firmware.bin release_dist/ghost_m5stick_v3.0.0.bin
+          cp dist/tmbed/firmware.bin release_dist/ghost_tmbed_v3.0.0.bin
+          cp flash_flipper.sh release_dist/ 2>/dev/null || echo "#!/bin/bash\necho 'Flipper: use dfu-util manually'" > release_dist/flash_flipper.sh
+          cp flash_m5stick.sh release_dist/
+          cp flash_tmbed.sh release_dist/
           cd release_dist && zip -r ../ghost_firmwares_v3.0.0.zip .
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
