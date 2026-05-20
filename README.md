@@ -1,75 +1,105 @@
 # 👻 Ghost Firmwares v3.0.0 — ReWorld Edition
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/release-v3.0.0-brightgreen)](https://github.com/Alex767-star/ghost-firmwares/releases)
+[![Release](https://img.shields.io/badge/release-v3.0.0--beta-brightgreen)](https://github.com/Alex767-star/ghost-firmwares/releases)
 [![CI](https://github.com/Alex767-star/ghost-firmwares/actions/workflows/build.yml/badge.svg)](https://github.com/Alex767-star/ghost-firmwares/actions)
 
-**Полная замена прошивки. 50+ функций. Установка в 1 клик.**
+**Полная замена прошивки. 50+ функций пентеста. Установка в 1 клик.**
 
-> ⚠️ Ghost Firmwares — это **полная прошивка** (full firmware), не .fap приложение.
+> ⚠️ Ghost Firmwares — это **полная прошивка** (full firmware), не .fap приложение.  
 > Она заменяет стоковую/кастомную прошивку на устройстве.
 
-## 📥 Быстрая установка
+---
 
-### Способ 1: Готовые прошивки (Рекомендуется)
-Скачай готовый файл из [Releases](https://github.com/Alex767-star/ghost-firmwares/releases) и прошей:
+## 📦 Требования для сборки
 
-| Устройство | Файл | Инструкция |
-|------------|------|------------|
-| Flipper Zero | `ghost_flipper_v3.0.0.dfu` | Зажми BACK+LEFT при подключении USB → [dfu.zip](https://github.com/Alex767-star/ghost-firmwares/releases/download/v3.0.0/dfu.zip) |
-| M5StickC Plus2 | `ghost_m5stick_v3.0.0.bin` | [Web Flasher](https://alex767-star.github.io/ghost-firmwares/flash) |
-| T-Mbed | `ghost_tmbed_v3.0.0.bin` | [Web Flasher](https://alex767-star.github.io/ghost-firmwares/flash) |
+| Компонент | Версия | Для платформы |
+|-----------|--------|---------------|
+| Python | 3.10+ | Все |
+| PlatformIO Core | 6.x | M5Stick, T-Mbed |
+| Flipper Zero SDK + Docker | latest | Flipper Zero |
+| ESPTool | 4.x | M5Stick, T-Mbed (прошивка) |
+| dfu-util | 0.11 | Flipper Zero (прошивка) |
 
-### Способ 2: Скрипт автоустановки (Windows/Linux/Mac)
+Установка PlatformIO:
 ```bash
-# Linux/Mac
-curl -sSL https://github.com/Alex767-star/ghost-firmwares/releases/download/v3.0.0/install.sh | bash
+pip install platformio
 
-# Windows (PowerShell)
-iwr -useb https://github.com/Alex767-star/ghost-firmwares/releases/download/v3.0.0/install.ps1 | iex
+Установка ESPTool:
+bash
 
-Способ 3: Из исходников
+pip install esptool
+
+📥 Установка
+Flipper Zero (ПОЛНАЯ ПРОШИВКА)
+bash
+
+# 1. Собрать или скачать .dfu файл
+# 2. Зажать BACK+LEFT при подключении USB
+# 3. Прошить:
+dfu-util -d 0483:df11 -a 0 -s 0x08000000 -D ghost_flipper_v3.0.0.dfu
+
+M5StickC Plus 2
+bash
+
+# Web Flasher (открой в браузере):
+# https://alex767-star.github.io/ghost-firmwares/flash
+
+# Или ESPTool:
+esptool.py --chip esp32 --port /dev/ttyUSB0 --baud 921600 write_flash 0x0 ghost_m5stick_v3.0.0.bin
+
+T-Mbed
+bash
+
+# Web Flasher или:
+esptool.py --chip esp32s3 --port /dev/ttyUSB0 --baud 921600 write_flash 0x0 ghost_tmbed_v3.0.0.bin
+
+🔧 Сборка из исходников
 bash
 
 git clone https://github.com/Alex767-star/ghost-firmwares.git
 cd ghost_firmwares
+
+# Все платформы
 make all
 
+# Или выборочно
+make m5stick    # M5StickC Plus 2
+make tmbed      # T-Mbed
+# Flipper Zero: требуется Docker + Flipper SDK
+
 🔥 Функции (50+)
-Категория	Функции
-📡 Wi-Fi	Deauth, Beacon/Probe flood, PMKID crack, WPA3 downgrade, Evil Portal, Karma, War Driving
-📱 BLE	SwiftPair, LoveSpouse, CVE-2023-45866, KNOB attack, Apple/Samsung/Google spam
-📡 Sub-GHz	RF Jammer (Full/Intermittent), Gate Opener, RAW replay, Spectrum, NRF24 Jammer
+Категория	Модули
+📡 Wi-Fi	Deauth, Beacon/Probe flood, PMKID crack, WPA3 downgrade, Evil Portal, Karma, War Driving, ESP-NOW
+📱 BLE	SwiftPair, LoveSpouse, CVE-2023-45866, KNOB, Apple/Samsung/Google spam
+📡 Sub-GHz	RF Jammer (Full/Intermittent/Sweep), Gate, RAW replay, Spectrum, NRF24 Jammer, FM Radio
 ⌨️ BadUSB	DuckyScript, Macro Recorder, 15+ пейлоадов, JS Interpreter
 🎣 Phishing	8 шаблонов, Captive Portal Cloner, Auto-Detect
 📺 IR	TV (100+ брендов), KeeLoq брутфорс, автосигналки
-🔑 NFC/RFID	Эмуляция, Relay Attack, AmiiboLink, Chameleon, iButton
-🖥️ UI	5 тем, кастомные обои/иконки, Pixel Art, LED Control, Dim Timeout
+🔑 NFC/RFID	Эмуляция, Relay, AmiiboLink, Chameleon, iButton
+🖥️ UI	5 тем, обои, иконки, LED Control, Dim Timeout, Boot Sound, Mic Spectrum
 🛡️ Red Team	Mouse Jacking, ARP Poison, DNS Spoof, Keylogger, Wireguard VPN
-🎮 Extra	Brucegotchi, FM Radio, QR Codes (PIX), ESP-NOW, WebUI, Audio Playback
-🔧 Система	OTA Updates, Plugin System (.gpm), Boot Sound, Remote Shell
+🎮 Extra	Brucegotchi, QR Codes (PIX), Audio Playback, WebUI
 🖥️ WebUI
 
-Подключись к Wi-Fi сети Ghost-устройства и открой браузер:
+Подключись к Wi-Fi сети Ghost-устройства:
 text
 
 http://ghost.local
 
-Управляй всеми функциями через веб-интерфейс.
-⚖️ Юридическая информация
+📸 Скриншоты
 
-Данное ПО предназначено исключительно для:
+Скриншоты будут добавлены в первом релизе. Следите за Releases.
+👥 Участие в проекте
 
-    Тестирования собственного оборудования
+См. CONTRIBUTING.md и CODE_OF_CONDUCT.md.
+⚖️ Правовая информация
 
-    Образовательных целей
-
-    Пентеста с письменного разрешения владельца
-
+Исключительно для тестирования собственного оборудования и образовательных целей.
 Незаконное использование преследуется по закону. Автор не несёт ответственности.
 👤 Автор
 
 ellilot Anderson / GhostSec — github.com/Alex767-star
 📄 Лицензия
 
-MIT — делай что хочешь, но ответственность твоя.
+MIT — делай что хочешь, ответственность твоя.

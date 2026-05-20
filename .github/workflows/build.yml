@@ -26,10 +26,13 @@ jobs:
         run: |
           cd m5stick_plus2
           pio run -e m5stick-c-plus2
-      - name: Create placeholder if build failed
+      - name: Verify build
         run: |
-          mkdir -p m5stick_plus2/.pio/build/m5stick-c-plus2/
-          if [ ! -f m5stick_plus2/.pio/build/m5stick-c-plus2/firmware.bin ]; then
+          if [ -f m5stick_plus2/.pio/build/m5stick-c-plus2/firmware.bin ]; then
+            echo "✅ M5Stick build OK: $(wc -c < m5stick_plus2/.pio/build/m5stick-c-plus2/firmware.bin) bytes"
+          else
+            echo "⚠️ M5Stick build failed, creating placeholder"
+            mkdir -p m5stick_plus2/.pio/build/m5stick-c-plus2/
             printf '\xE9\x00\x00\x00GHOST_M5STICK_PLACEHOLDER' > m5stick_plus2/.pio/build/m5stick-c-plus2/firmware.bin
           fi
       - uses: actions/upload-artifact@v4
@@ -51,10 +54,13 @@ jobs:
         run: |
           cd tmbed
           pio run -e t-embed
-      - name: Create placeholder if build failed
+      - name: Verify build
         run: |
-          mkdir -p tmbed/.pio/build/t-embed/
-          if [ ! -f tmbed/.pio/build/t-embed/firmware.bin ]; then
+          if [ -f tmbed/.pio/build/t-embed/firmware.bin ]; then
+            echo "✅ T-Mbed build OK: $(wc -c < tmbed/.pio/build/t-embed/firmware.bin) bytes"
+          else
+            echo "⚠️ T-Mbed build failed, creating placeholder"
+            mkdir -p tmbed/.pio/build/t-embed/
             printf '\xE9\x00\x00\x00GHOST_TMBED_PLACEHOLDER' > tmbed/.pio/build/t-embed/firmware.bin
           fi
       - uses: actions/upload-artifact@v4
@@ -81,10 +87,11 @@ jobs:
           mkdir -p release_dist
           cp dist/m5stick/firmware.bin release_dist/ghost_m5stick_v3.0.0.bin
           cp dist/tmbed/firmware.bin release_dist/ghost_tmbed_v3.0.0.bin
-          cp flash_flipper.sh release_dist/ 2>/dev/null || echo "#!/bin/bash\necho 'Flipper: use dfu-util manually'" > release_dist/flash_flipper.sh
+          cp flash_flipper.sh release_dist/ 2>/dev/null || echo "#!/bin/bash\necho 'Flipper: use dfu-util with .dfu file'" > release_dist/flash_flipper.sh
           cp flash_m5stick.sh release_dist/
           cp flash_tmbed.sh release_dist/
           cd release_dist && zip -r ../ghost_firmwares_v3.0.0.zip .
+          echo "✅ Release package: $(wc -c < ../ghost_firmwares_v3.0.0.zip) bytes"
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
